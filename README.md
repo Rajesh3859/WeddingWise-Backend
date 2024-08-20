@@ -4,5 +4,4 @@ Requried install:
 2, npm install mongodb
 3, npm install mongoose
 4, npm install dotenv
-5, npm install bcrypt
-6, npm install nodemon
+5, npm install 
