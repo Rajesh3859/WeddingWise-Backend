@@ -56,9 +56,10 @@ const loginUser = async (req, res, next) => {
 };
 
 const google = async (req, res, next) => {
-  const { email, name, profilePic } = req.body;
-
+  
+const { email, name, profilePic } = req.body;
   try {
+    
     const user = await User.findOne({ email });
     if (user) {
       const token = jwt.sign(
@@ -71,7 +72,9 @@ const google = async (req, res, next) => {
       res
         .status(200)
         .json({ message: "User LoggedIn Successfully", rest, token });
+      
     } else {
+      
       const generatePassword =
         Math.random().toString(36).slice(-8) +
         Math.random().toString(36).slice(-8);
