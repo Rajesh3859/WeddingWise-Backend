@@ -2,14 +2,12 @@ const express = require("express");
 const dotenv = require("dotenv");
 const cors = require("cors");
 const connectDB = require("./Database/config.js");
-const authRouter = require("./Routes/authRouter");
-const bodyparser = require('body-parser');
+const parser = require("body-parser");
 const serverless = require("serverless-http");
 
 dotenv.config();
 
 const app = express();
-app.use(bodyparser.json())
 
 //logging to check
 app.use((req, res, next) => {
@@ -18,22 +16,14 @@ app.use((req, res, next) => {
 });
 
 //cors
-
-app.use(
-  cors({
-    origin: "*",
-    method: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization"],
-    credentials: true,
-  })
-);
+app.use(cors());
 
 app.use((req, res, next) => {
   next();
 });
 
 app.options("*", cors());
-app.use(express.json());
+app.use(parser.json());
 
 //Error handler
 
@@ -49,21 +39,15 @@ app.use((err, req, res, next) => {
 
 connectDB();
 
-const router = express.Router();
-
-router.get("/", (_, res) => {
-  res.send("Welcome to Wedding Wide API");
-});
-
-app.use("/api", router);
-app.use("/auth", authRouter);
-
+app.use("/api/users/", require("./modules/Users/users.controller.js"));
+app.use("/products", require("./modules/Products/product.controller.js"));
+app.use("/brands", require("./modules/Brands/brand.controller.js"));
+app.use("/subbrands", require("./modules/Subbrands/subbrand.controller.js"));
 
 var listener = app.listen(process.env.PORT, function () {
-    console.log('Listening on port' + listener.address().port)
-
-})
+  console.log("Listening on port" + listener.address().port);
+});
 
 const handler = serverless(app);
 
-module.exports = {handler}
+module.exports = { handler };

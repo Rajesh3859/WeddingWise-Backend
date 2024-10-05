@@ -1,13 +1,16 @@
-const errorHandler = require("../Utils/Error");
 const bcrypt = require("bcrypt");
+const UsersRouter = require("express").Router();
 const jwt = require("jsonwebtoken");
 const dotenv = require("dotenv");
-const User = require("../Models/userModel.js");
+const User = require("./users.model");
+const { Types } = require("mongoose");
 
 dotenv.config();
 const saltRounds = 10; // Declare with const
 
-const registerUser = async (req, res, next) => {
+// Register user route
+//localhost:3001/Users/register-user
+http: UsersRouter.post("/register-user", async (req, res, next) => {
   const { username, email, password } = req.body;
 
   if (!username || !email || !password) {
@@ -15,16 +18,12 @@ const registerUser = async (req, res, next) => {
   }
 
   try {
-    // Check if user already exists
     const existingUser = await User.findOne({ email });
     if (existingUser) {
       return res.status(400).json({ error: "Email is already registered" });
     }
 
-    // Hash the password
     const hashedPassword = await bcrypt.hash(password, saltRounds);
-
-    // Create a new user
     const newUser = new User({ username, email, password: hashedPassword });
     await newUser.save();
 
@@ -32,25 +31,26 @@ const registerUser = async (req, res, next) => {
   } catch (error) {
     next(error);
   }
-};
+});
 
-const loginUser = async (req, res, next) => {
+// Login user route
+//localhost:3001/Users/login-user
+UsersRouter.post("/login-user", async (req, res, next) => {
   const { email, password } = req.body;
 
   if (!email || !password) {
-    return next(errorHandler(400, "All fields are required"));
+    return res.status(400).json({ error: "All fields are required" });
   }
 
   try {
     const userDetail = await User.findOne({ email });
-
     if (!userDetail) {
-      return next(errorHandler(400, "Invalid credentials"));
+      return res.status(400).json({ error: "Invalid credentials" });
     }
 
     const isPasswordValid = await bcrypt.compare(password, userDetail.password);
     if (!isPasswordValid) {
-      return next(errorHandler(400, "Invalid credentials"));
+      return res.status(400).json({ error: "Invalid credentials" });
     }
 
     // Create JWT token
@@ -67,9 +67,11 @@ const loginUser = async (req, res, next) => {
   } catch (error) {
     next(error);
   }
-};
+});
 
-const google = async (req, res, next) => {
+// Google authentication route
+//localhost:3001/Users/google
+UsersRouter.post("/google", async (req, res, next) => {
   const { email, name, profilePic } = req.body;
 
   try {
@@ -82,8 +84,7 @@ const google = async (req, res, next) => {
       );
 
       const { password: passkey, ...rest } = user._doc;
-
-      res
+      return res
         .status(200)
         .json({ message: "User logged in successfully", rest, token });
     } else {
@@ -92,16 +93,15 @@ const google = async (req, res, next) => {
         Math.random().toString(36).slice(-8) +
         Math.random().toString(36).slice(-8);
 
-      // Hash the generated password
       const hashedPassword = await bcrypt.hash(generatePassword, saltRounds);
 
       const newUser = new User({
         username:
           name?.toLowerCase().split(" ").join("") +
           Math.random().toString(9).slice(-4),
-        email: email,
+        email,
         password: hashedPassword,
-        profilePicture: profilePic,
+        profilePicture: profilePic || "", // Ensure a profile picture is available or default to empty
       });
 
       await newUser.save();
@@ -113,31 +113,42 @@ const google = async (req, res, next) => {
 
       const { password: passkey, ...rest } = newUser._doc;
 
-      res
-        .status(200)
-        .json({
-          message: "User registered and logged in successfully",
-          rest,
-          token,
-        });
+      res.status(201).json({
+        message: "User registered and logged in successfully",
+        rest,
+        token,
+      });
     }
   } catch (error) {
     next(error);
   }
-};
+});
 
-const getUser = async (req, res, next) => {
+// Get user by ID route
+//localhost:3001/Users/user/1
+UsersRouter.get("/user/:userId", async (req, res, next) => {
+  const { userId } = req.params;
+
   try {
-    const users = await User.find({});
-    res.status(200).json(users);
-  } catch (error) {
-    next(error);
-  }
-};
+    const response = await User.findById(Types.ObjectId(userId)); // Use findById for cleaner code
 
-module.exports = {
-  registerUser,
-  loginUser,
-  google,
-  getUser,
-};
+    if (response) {
+      return res.status(200).json({
+        message: "User fetched successfully",
+        data: response,
+      });
+    } else {
+      return res.status(404).json({
+        message: "No User found",
+        data: {},
+      });
+    }
+  } catch (error) {
+    return res.status(500).json({
+      message: "Something went wrong",
+      error,
+    });
+  }
+});
+
+module.exports = UsersRouter;

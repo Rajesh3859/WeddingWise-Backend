@@ -1,19 +1,59 @@
 const jwt = require("jsonwebtoken");
-const { errorHandle } = require("../Utils/Error");
+const UserModel = require("../modules/Users/users.model");
+const { Types } = require("mongoose");
 
-const verifyToken = (req, res, next) => {
-  const token = req.header.token;
-
-  if (!token) {
-    return next(errorHandle(401, "Unathorized Access"));
-  }
-  jwt.verify(token, process.env.JWT_SECERT_KEY, (err, user) => {
-    if (err) {
-      return next(errorHandle(401, "authorized access"));
+function TokenChecker(req, res, next) {
+  try {
+    if (req.headers.authorization) {
+      const token = jwt.verify(req.headers.authorization, process.env.JWT_SECRET_KEY);
+      if (token) {
+        next();
+      }
+    } else {
+      return res.status(500).json({
+        message: "Token is missing",
+      });
     }
-    req.user = user;
-    next();
-  });
-};
+  } catch (error) {
+    return res.status(500).json({
+      message: "Something went wrong",
+      error,
+    });
+  }
+}
 
-module.exports = verifyToken;
+async function AdminGuardChecker(req, res, next) {
+  try {
+    if (req.body.email) {
+      const response = await UserModel.findOne({
+        email: req.body.email,
+      });
+      if (response._id) {
+        if (response.isAdmin || response.isSuperAdmin) {
+          next();
+        } else {
+          return res.status(403).json({
+            success: false,
+            message: "Un Authorized access",
+          });
+        }
+      } else {
+        return res.status(404).json({
+          success: false,
+          message: "No accounts found. Create account to continue",
+        });
+      }
+    }
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: "Something went wrong",
+      error,
+    });
+  }
+}
+
+module.exports = {
+  TokenChecker,
+  AdminGuardChecker,
+};
