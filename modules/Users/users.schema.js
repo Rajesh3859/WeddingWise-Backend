@@ -18,7 +18,7 @@ const userSchema = new mongoose.Schema(
             required: true,
         },
         profilePicture: {
-            type: String,
+            type: URL,
             required: true,
             default:
                 "https://bmbwinhouse.com/wp-content/uploads/2024/02/360_F_65772719_A1UV5kLi5nCEWI0BNLLiFaBPEkUbv5Fv.jpg",
