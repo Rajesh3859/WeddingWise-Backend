@@ -19,21 +19,19 @@ const productSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
-    images: {
-      type: Array,
-      required: false,
+    imageUrl: {
+      type: String,
     },
     subbrand: {
       type: Types.ObjectId,
       required: false,
     },
     brand: {
-        type: Types.ObjectId,
-        required: false
+      type: Types.ObjectId,
+      required: false,
     },
   },
   { timestamps: true }
 );
-
 
 module.exports = productSchema;

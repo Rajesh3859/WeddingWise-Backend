@@ -44,11 +44,11 @@ SubBrandRouter.get("/", async (req, res) => {
 
 // 3. Get a brand
 // http://localhost:3001/subbrands/brand/:brandId
-SubBrandRouter.get("/brand/:brandId", async (req, res) => {
+SubBrandRouter.get("/:brandId", async (req, res) => {
   try {
     const { brandId } = req.params;
-    const response = await SubBrand.findOne({
-      _id: new Types.ObjectId(brandId),
+    const response = await SubBrand.find({
+      brand: new Types.ObjectId(brandId),
     });
     if (response) {
       return res.status(200).json({
@@ -69,13 +69,13 @@ SubBrandRouter.get("/brand/:brandId", async (req, res) => {
 });
 
 // 3. Update a subbrands
-// http://localhost:3001/subbrands/:brandId
-SubBrandRouter.patch("/:brandId", async (req, res) => {
-  const { brandId } = req.params;
+// http://localhost:3001/subbrands/:subbrandId
+SubBrandRouter.patch("/:subbrandId", async (req, res) => {
+  const { subbrandId } = req.params;
   try {
     const response = await SubBrand.findOneAndUpdate(
       {
-        _id: new Types.ObjectId(brandId),
+        _id: new Types.ObjectId(subbrandId),
       },
       {
         $set: req.body,
@@ -103,7 +103,7 @@ SubBrandRouter.patch("/:brandId", async (req, res) => {
   }
 });
 
-// 3. Update a subbrands
+// 4. Delete a subbrand
 // http://localhost:3001/subbrands/:brandId
 SubBrandRouter.delete("/:brandId", async (req, res) => {
   const { brandId } = req.params;

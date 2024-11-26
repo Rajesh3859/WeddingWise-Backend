@@ -24,12 +24,12 @@ ProductRouter.post("/create", async (req, res) => {
 
 // 2. Get all products
 // http://localhost:3001/products/
-ProductRouter.get("/", TokenChecker, async (req, res) => {
+ProductRouter.get("/", async (req, res) => {
   try {
     const products = await Product.find();
     if (products.length > 0) {
       return res.status(200).json({
-        message: "Products fetched successfully",
+        message: "products fetched successfully",
         products,
       });
     } else {
@@ -69,16 +69,16 @@ ProductRouter.get("/:productId", async (req, res) => {
   }
 });
 
-// 4. Get products of a particular brand
+// 4. Get products of a particular subbrand
 // http://localhost:3001/products/subbrand/:SubbrandId
-ProductRouter.get("/subbrand/:SubbrandId", async (req, res) => {
+ProductRouter.get("/subbrand/:subbrandId", async (req, res) => {
   try {
-    const { brandId } = req.params;
-    const products = await Product.find({ brand: new Types.ObjectId(brandId) });
-    if (products.length > 0) {
+    const { subbrandId } = req.params;
+    const response = await Product.find({ subbrand: new Types.ObjectId(subbrandId) });
+    if (response.length > 0) {
       return res.status(200).json({
-        message: "Products fetched successfully",
-        products,
+        message: "products fetched successfully",
+        response,
       });
     } else {
       return res.status(404).json({
@@ -92,6 +92,8 @@ ProductRouter.get("/subbrand/:SubbrandId", async (req, res) => {
     });
   }
 });
+
+
 
 // 5. Update a product
 // http://localhost:3001/products/:productId

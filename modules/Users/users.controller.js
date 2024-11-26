@@ -64,8 +64,8 @@ UsersRouter.post("/login-user", async (req, res, next) => {
     res
       .status(200)
       .json({ message: "User logged in successfully", rest, token });
-  } catch (error) {
-    next(error);
+  } catch {
+    next("User logging failed");
   }
 });
 
